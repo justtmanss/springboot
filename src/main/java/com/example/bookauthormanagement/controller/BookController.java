@@ -1,31 +1,24 @@
 package com.example.demo.controller;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.demo.model.Book;
+import com.example.demo.model.Author;
+import com.example.demo.repository.BookRepository;
+import com.example.demo.repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.example.demo.model.Book;
-import com.example.demo.repository.BookRepository;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
-
 public class BookController {
 
-    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     @Autowired
     private BookRepository bookRepository;
+
+    @Autowired
+    private AuthorRepository authorRepository;
 
     @GetMapping
     public List<Book> getAllBooks() {
@@ -41,54 +34,36 @@ public class BookController {
 
     @PostMapping
     public Book createBook(@RequestBody Book book) {
-        try {
-            System.out.println("Creating book: " + book);
-            logger.info("Creating book: {}", book);
-            return bookRepository.save(book);
-        } catch (Exception e) {
-            logger.error("Error creating book", e);
-            throw e; // Rethrow the exception after logging
-        }
+        return bookRepository.save(book);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book bookDetails) {
-        return bookRepository.findById(id)
-                .map(book -> {
-                    // Use the title from bookDetails if it's not empty, otherwise retain the current title
-                    if (bookDetails.getTitle() != null && !bookDetails.getTitle().isEmpty()) {
-                        book.setTitle(bookDetails.getTitle());
-                    }
-                    ;
-                    if (bookDetails.getAuthorname() != null && !bookDetails.getAuthorname().isEmpty()) {
-                        book.setAuthorname(bookDetails.getAuthorname());
-                    }
-                    ;
-                    if (bookDetails.getIsbn() != null && !bookDetails.getIsbn().isEmpty()) {
-                        book.setIsbn(bookDetails.getIsbn());
-                    }
-                    ;
-                    if (bookDetails.getPubyear() != 0) {
-                        book.setPubyear(bookDetails.getPubyear());
-                    }
-                    ;
-                    if (bookDetails.getCopies() != 0) {
-                        book.setCopies(bookDetails.getCopies());
-                    }
-                    ;
+        return bookRepository.findById(id).map(book -> {
+            book.setTitle(bookDetails.getTitle());
+            book.setIsbn(bookDetails.getIsbn());
+            book.setPubyear(bookDetails.getPubyear());
+            book.setCopies(bookDetails.getCopies());
 
-                    Book updatedBook = bookRepository.save(book);
-                    return ResponseEntity.ok().body(updatedBook);
-                }).orElse(ResponseEntity.notFound().build());
+            // Set the author if provided
+            if (bookDetails.getAuthor() != null) {
+                book.setAuthor(bookDetails.getAuthor());
+            }
+
+            // Update author name from the associated author object
+            String authorName = bookDetails.getAuthor() != null ? bookDetails.getAuthor().getName() : "Unknown";
+            System.out.println("Author name: " + authorName);
+
+            Book updatedBook = bookRepository.save(book);
+            return ResponseEntity.ok(updatedBook);
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteBook(@PathVariable Long id) {
-        return bookRepository.findById(id)
-                .map(book -> {
-                    bookRepository.delete(book);
-                    return ResponseEntity.ok().build();
-                }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        return bookRepository.findById(id).map(book -> {
+            bookRepository.delete(book);
+            return ResponseEntity.ok().<Void>build();
+        }).orElse(ResponseEntity.notFound().build());
     }
 }
-

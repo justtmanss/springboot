@@ -1,10 +1,6 @@
 package com.example.demo.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "books")
@@ -12,14 +8,15 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
-    //@NonNull
-    private String authorname;
-
-
     private String isbn;
     private Integer pubyear;
     private Integer copies;
+
+    @ManyToOne(fetch = FetchType.EAGER)  // Change to EAGER if you need the author details frequently
+    @JoinColumn(name = "author_id", nullable = false)
+    private Author author;
 
     // Getters and setters
     public Long getId() {
@@ -38,14 +35,6 @@ public class Book {
         this.title = title;
     }
 
-    public String getAuthorname() {
-        return authorname;
-    }
-
-    public void setAuthorname(String authorname) {
-        this.authorname = authorname;
-    }
-
     public String getIsbn() {
         return isbn;
     }
@@ -54,19 +43,32 @@ public class Book {
         this.isbn = isbn;
     }
 
-    public int getPubyear() {
+    public Integer getPubyear() {
         return pubyear;
     }
 
-    public void setPubyear(int pubyear) {
+    public void setPubyear(Integer pubyear) {
         this.pubyear = pubyear;
     }
 
-    public int getCopies() {
+    public Integer getCopies() {
         return copies;
     }
 
-    public void setCopies(int copies) {
+    public void setCopies(Integer copies) {
         this.copies = copies;
+    }
+
+    public Author getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(Author author) {
+        this.author = author;
+    }
+
+    // Additional method to get author name directly
+    public String getAuthorName() {
+        return author != null ? author.getName() : null;
     }
 }

@@ -57,50 +57,45 @@
             padding: 20px;
             border-radius: 8px;
         }
-        .get-books {
+        .get-books, .get-authors {
             background-color: #e0f7fa;
         }
-        .add-book {
+        .add-book, .add-author {
             background-color: #ffe0b2;
         }
-        .update-book {
+        .update-book, .update-author {
             background-color: #c8e6c9;
         }
-
     </style>
     <script>
-        async function getBooks() {
-            const response = await fetch('http://localhost:8081/api/books');
-            const books = await response.json();
-            console.log(books);
-        }
+        // Book API functions
 
         async function addBook() {
-            const title = document.getElementById('add-title').value;
-            const isbn = document.getElementById('add-isbn').value;
-            const authorname = document.getElementById('add-authorname').value;
-            const pubyear = parseInt(document.getElementById('add-pubyear').value);
-            const copies = parseInt(document.getElementById('add-copies').value);
+    const title = document.getElementById('add-title').value;
+    const isbn = document.getElementById('add-isbn').value;
+    const authorId = parseInt(document.getElementById('add-author-id').value); // Changed to author ID
+    const pubyear = parseInt(document.getElementById('add-pubyear').value);
+    const copies = parseInt(document.getElementById('add-copies').value);
 
-            const book = {
-                title: title,
-                isbn: isbn,
-                authorname: authorname,
-                pubyear: pubyear,
-                copies: copies
-            };
+    const book = {
+        title: title,
+        isbn: isbn,
+        author: { id: authorId }, // Associate the author by ID
+        pubyear: pubyear,
+        copies: copies
+    };
 
-            const response = await fetch('http://localhost:8081/api/books', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(book)
-            });
+    const response = await fetch('http://localhost:8081/api/books', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(book)
+    });
 
-            const newBook = await response.json();
-            console.log(newBook);
-        }
+    const newBook = await response.json();
+    console.log(newBook);
+}
 
         async function updateBook() {
             const id = document.getElementById('update-id').value;
@@ -128,7 +123,7 @@
             console.log(updatedBook);
         }
 
-async function deleteBook() {
+        async function deleteBook() {
             const id = document.getElementById('delete-id').value;
 
             await fetch(`http://localhost:8081/api/books/${id}`, {
@@ -137,14 +132,95 @@ async function deleteBook() {
 
             console.log(`Book with id ${id} deleted`);
         }
+        async function getBooks() {
+    const response = await fetch('http://localhost:8081/api/books');
+    if (!response.ok) {
+        console.error('Error fetching books:', response.statusText);
+        const text = await response.text();
+        console.log(text);
+        return; // Exit if there's an error
+    }
+    const books = await response.json();
+    console.log(books);
+}
 
+async function getAuthors() {
+    const response = await fetch('http://localhost:8081/api/authors');
+    if (!response.ok) {
+        console.error('Error fetching authors:', response.statusText);
+        const text = await response.text();
+        console.log(text);
+        return; // Exit if there's an error
+    }
+    const authors = await response.json();
+    console.log(authors);
+}
 
+        // Author API functions
+     
+        async function addAuthor() {
+            const name = document.getElementById('add-author-name').value;
+            const nationality = document.getElementById('add-author-nationality').value;
+            const birthYear = parseInt(document.getElementById('add-author-birthyear').value);
+
+            const author = {
+                name: name,
+                nationality: nationality,
+                birthYear: birthYear
+            };
+
+            const response = await fetch('http://localhost:8081/api/authors', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(author)
+            });
+
+            const newAuthor = await response.json();
+            console.log(newAuthor);
+        }
+
+        async function updateAuthor() {
+            const id = document.getElementById('update-author-id').value;
+            const name = document.getElementById('update-author-name').value;
+            const nationality = document.getElementById('update-author-nationality').value;
+            const birthYear = parseInt(document.getElementById('update-author-birthyear').value);
+
+            const author = {
+                name: name,
+                nationality: nationality,
+                birthYear: birthYear
+            };
+
+            const response = await fetch(`http://localhost:8081/api/authors/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(author)
+            });
+
+            const updatedAuthor = await response.json();
+            console.log(updatedAuthor);
+        }
+
+        async function deleteAuthor() {
+            const id = document.getElementById('delete-author-id').value;
+
+            await fetch(`http://localhost:8081/api/authors/${id}`, {
+                method: 'DELETE'
+            });
+
+            console.log(`Author with id ${id} deleted`);
+        }
     </script>
 </head>
 <body>
 <div class="container">
     <h1>Library API</h1>
 
+    <!-- Book Sections -->
     <div class="section get-books">
         <h2>Get Books</h2>
         <button onclick="getBooks()">Get Books</button>
@@ -169,10 +245,40 @@ async function deleteBook() {
         <label>Copies: <input type="number" id="update-copies"></label>
         <button onclick="updateBook()">Update Book</button>
     </div>
+
     <div class="section delete-book">
         <h2>Delete Book</h2>
         <label>ID: <input type="number" id="delete-id"></label>
         <button onclick="deleteBook()">Delete Book</button>
+    </div>
+
+    <!-- Author Sections -->
+    <div class="section get-authors">
+        <h2>Get Authors</h2>
+        <button onclick="getAuthors()">Get Authors</button>
+    </div>
+
+    <div class="section add-author">
+        <h2>Add Author</h2>
+        <label>Name: <input type="text" id="add-author-name"></label>
+        <label>Nationality: <input type="text" id="add-author-nationality"></label>
+        <label>Birth Year: <input type="number" id="add-author-birthyear"></label>
+        <button onclick="addAuthor()">Add Author</button>
+    </div>
+
+    <div class="section update-author">
+        <h2>Update Author</h2>
+        <label>ID: <input type="number" id="update-author-id"></label>
+        <label>Name: <input type="text" id="update-author-name"></label>
+        <label>Nationality: <input type="text" id="update-author-nationality"></label>
+        <label>Birth Year: <input type="number" id="update-author-birthyear"></label>
+        <button onclick="updateAuthor()">Update Author</button>
+    </div>
+
+    <div class="section delete-author">
+        <h2>Delete Author</h2>
+        <label>ID: <input type="number" id="delete-author-id"></label>
+        <button onclick="deleteAuthor()">Delete Author</button>
     </div>
 </div>
 </body>
